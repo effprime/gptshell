@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/effprime/gptshell/internal/config"
 	"github.com/effprime/gptshell/internal/gptclient"
 )
 
@@ -17,25 +18,49 @@ const (
 	Model         = "gpt-3.5-turbo"
 )
 
-func Run(apiKey string) error {
+func Run() error {
+	c, err := config.Get()
+	if err != nil {
+		if err == config.ErrNoConfigPresent {
+			c, err = config.NewWithPrompt()
+			if err != nil {
+				return err
+			}
+		} else {
+			return err
+		}
+	}
+
 	sentence := ""
 	survey.AskOne(&survey.Input{
 		Message: "Hello! What are you trying to do?",
 	}, &sentence)
 
-	c := gptclient.NewClient(apiKey)
-	resp, err := c.Chat(&gptclient.ChatCompletionRequest{
+	client := gptclient.NewClient(c.APIKey)
+
+	history := config.History{}
+	req := gptclient.ChatCompletionRequest{
 		Model: Model,
 		Messages: []gptclient.Message{
 			{Role: gptclient.RoleSystem, Content: SystemMessage},
 			{Role: gptclient.RoleUser, Content: sentence},
 		},
-	})
+	}
+	history.Request = req
+
+	resp, err := client.Chat(&req)
 	if err != nil {
-		return fmt.Errorf("Error calling ChatGPT API: %v", err)
+		return fmt.Errorf("error calling ChatGPT API: %v", err)
 	}
 	if len(resp.Choices) == 0 {
 		return errors.New("no message received from ChatGPT API")
+	}
+	history.Response = *resp
+
+	c.History = append(c.History, history)
+	err = config.Save(c)
+	if err != nil {
+		return fmt.Errorf("error saving chat history: %v", err)
 	}
 
 	content := resp.Choices[0].Message.Content
