@@ -33,8 +33,11 @@ func Run() error {
 
 	sentence := ""
 	survey.AskOne(&survey.Input{
-		Message: "Hello! What are you trying to do?",
+		Message: "Please describe what you are trying to do:",
 	}, &sentence)
+	if sentence == "" {
+		return errors.New("no prompt provided")
+	}
 
 	client := gptclient.NewClient(c.APIKey)
 

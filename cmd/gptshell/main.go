@@ -1,9 +1,9 @@
 package main
 
 import (
-	"flag"
 	"log"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/effprime/gptshell/internal/gptshell"
 )
 
@@ -13,18 +13,25 @@ const (
 )
 
 func main() {
-	action := flag.String("action", ActionRun, "GPTShell action")
-	flag.Parse()
+	choice := -1
+	prompt := &survey.Select{
+		Message: "Welcome to GPTShell! Please choose an option",
+		Options: []string{
+			"Prompt",
+			"History",
+		},
+	}
+	survey.AskOne(prompt, &choice)
 
-	switch *action {
+	switch choice {
 
-	case ActionRun:
+	case 0:
 		err := gptshell.Run()
 		if err != nil {
 			log.Fatal(err)
 		}
 
-	case ActionHistory:
+	case 1:
 		err := gptshell.History()
 		if err != nil {
 			log.Fatal(err)
