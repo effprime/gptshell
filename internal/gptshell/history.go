@@ -15,6 +15,9 @@ const (
 	MaxHistoryToRender = 10
 )
 
+// History retrieves the previous gptshell sessions from config and displays them to the user.
+// If an old session is selected, the user can re-execute the command.
+// Note: it is up to you to decide if the command to be ran is safe.
 func History() error {
 	c, err := config.Get()
 	if err != nil {

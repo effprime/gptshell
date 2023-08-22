@@ -64,6 +64,7 @@ func NewClient(apiKey string) GPTClient {
 	}
 }
 
+// Chat calls the ChatGPT/OpenAI API with the given completion request.
 func (c *Client) Chat(req *ChatCompletionRequest) (*ChatCompletionResponse, error) {
 	b, err := json.Marshal(req)
 	if err != nil {

@@ -30,6 +30,8 @@ type History struct {
 	Response gptclient.ChatCompletionResponse `json:"response"`
 }
 
+// New creates a new file config at ~/.gptshell/... and returns the new config state.
+// The API key must be an OpenAI key that supports ChatGPT access.
 func New(apiKey string) (*GPTShellConfig, error) {
 	c := &GPTShellConfig{APIKey: apiKey}
 
@@ -60,6 +62,7 @@ func New(apiKey string) (*GPTShellConfig, error) {
 	return c, nil
 }
 
+// NewWithPrompt calls New() but prompts you for an API key first.
 func NewWithPrompt() (*GPTShellConfig, error) {
 	key := ""
 	survey.AskOne(&survey.Input{
@@ -69,6 +72,7 @@ func NewWithPrompt() (*GPTShellConfig, error) {
 	return New(key)
 }
 
+// Get gets the current file config. If not found, an error is returned.
 func Get() (*GPTShellConfig, error) {
 	p, err := path()
 	if err != nil {
@@ -88,6 +92,7 @@ func Get() (*GPTShellConfig, error) {
 	return c, err
 }
 
+// Save applies the provided config state to the config file.
 func Save(c *GPTShellConfig) error {
 	p, err := path()
 	if err != nil {

@@ -18,6 +18,10 @@ const (
 	Model         = "gpt-3.5-turbo"
 )
 
+// Run is the main handler for gptshell prompting.
+// It calls ChatGPT with the user's prompt and returns the command.
+// Finally, it asks the user if they would like to execute the command.
+// Note: it is up to you to decide if the command to be ran is safe.
 func Run() error {
 	c, err := config.Get()
 	if err != nil {
