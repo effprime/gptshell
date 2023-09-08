@@ -2,6 +2,7 @@ package gptshell
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/effprime/gptshell/internal/config"
+	"golang.org/x/exp/maps"
 )
 
 const (
@@ -33,14 +35,9 @@ func History() error {
 	}
 
 	opts := []string{}
-	for _, h := range c.History {
-		if len(h.Request.Messages) < 2 {
-			continue
-		}
-		if len(h.Response.Choices) == 0 {
-			continue
-		}
-		opts = append(opts, h.Request.Messages[1].Content)
+	histories := maps.Values(c.History)
+	for _, h := range histories {
+		opts = append(opts, fmt.Sprintf("%s - %s", h.Type, h.Title))
 	}
 
 	convoIndex := -1
@@ -50,25 +47,34 @@ func History() error {
 	}
 	survey.AskOne(prompt, &convoIndex)
 
-	if len(c.History)-1 < convoIndex || len(c.History[convoIndex].Response.Choices) == 0 {
-		return errors.New("internal error")
-	}
+	choice := histories[convoIndex]
+	switch choice.Type {
+	case config.HistoryTypeCommand:
+		command := choice.Exchanges[0].Response.Choices[0].Message.Content
+		simulateTyping(command, 75*time.Millisecond)
 
-	command := c.History[convoIndex].Response.Choices[0].Message.Content
-	simulateTyping(command, 75*time.Millisecond)
+		execute := ""
+		survey.AskOne(&survey.Input{
+			Message: "Execute raw response? (yes/no):",
+		}, &execute)
+		execute = strings.ToLower(execute)
 
-	execute := ""
-	survey.AskOne(&survey.Input{
-		Message: "Execute raw response? (yes/no):",
-	}, &execute)
-	execute = strings.ToLower(execute)
+		if execute == "yes" {
+			cmd := exec.Command("bash", "-c", command)
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+			cmd.Stdin = os.Stdin
+			cmd.Run()
+		}
 
-	if execute == "yes" {
-		cmd := exec.Command("bash", "-c", command)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		cmd.Run()
+	case config.HistoryTypeConvo:
+		counter := 0
+		for _, exchange := range choice.Exchanges {
+			fmt.Println(fmt.Sprintf("You: %s", exchange.Request.Messages[counter].Content))
+			fmt.Println(fmt.Sprintf("ChatGPT: %s", exchange.Response.Choices[0].Message.Content))
+			fmt.Println()
+			counter += 2
+		}
 	}
 
 	return nil

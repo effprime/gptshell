@@ -21,11 +21,22 @@ var (
 )
 
 type GPTShellConfig struct {
-	APIKey  string    `json:"apiKey"`
-	History []History `json:"history"`
+	APIKey  string             `json:"apiKey"`
+	History map[string]History `json:"history"`
 }
 
+const (
+	HistoryTypeCommand = "command"
+	HistoryTypeConvo   = "convo"
+)
+
 type History struct {
+	Type      string         `json:"type"`
+	Title     string         `json:"title"`
+	Exchanges []ChatExchange `json:"exchanges"`
+}
+
+type ChatExchange struct {
 	Request  gptclient.ChatCompletionRequest  `json:"request"`
 	Response gptclient.ChatCompletionResponse `json:"response"`
 }

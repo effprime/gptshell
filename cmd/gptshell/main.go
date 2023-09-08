@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -15,27 +16,27 @@ const (
 func main() {
 	choice := -1
 	prompt := &survey.Select{
-		Message: "Welcome to GPTShell! Please choose an option",
+		Message: "GPTShell",
 		Options: []string{
-			"Prompt",
-			"History",
+			"Run a command",
+			"Have a conversation",
+			"View command history",
 		},
 	}
 	survey.AskOne(prompt, &choice)
 
+	var err error
 	switch choice {
-
 	case 0:
-		err := gptshell.Run()
-		if err != nil {
-			log.Fatal(err)
-		}
-
+		err = gptshell.Run()
 	case 1:
-		err := gptshell.History()
-		if err != nil {
-			log.Fatal(err)
-		}
-
+		err = gptshell.Convo()
+	case 2:
+		err = gptshell.History()
+	default:
+		err = errors.New("invalid selection")
+	}
+	if err != nil {
+		log.Fatal(err)
 	}
 }

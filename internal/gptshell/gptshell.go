@@ -11,6 +11,7 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/effprime/gptshell/internal/config"
 	"github.com/effprime/gptshell/internal/gptclient"
+	"github.com/google/uuid"
 )
 
 const (
@@ -45,7 +46,7 @@ func Run() error {
 
 	client := gptclient.NewClient(c.APIKey)
 
-	history := config.History{}
+	exchange := config.ChatExchange{}
 	req := gptclient.ChatCompletionRequest{
 		Model: Model,
 		Messages: []gptclient.Message{
@@ -53,7 +54,7 @@ func Run() error {
 			{Role: gptclient.RoleUser, Content: sentence},
 		},
 	}
-	history.Request = req
+	exchange.Request = req
 
 	resp, err := client.Chat(&req)
 	if err != nil {
@@ -62,9 +63,13 @@ func Run() error {
 	if len(resp.Choices) == 0 {
 		return errors.New("no message received from ChatGPT API")
 	}
-	history.Response = *resp
+	exchange.Response = *resp
 
-	c.History = append(c.History, history)
+	c.History[uuid.New().String()] = config.History{
+		Exchanges: []config.ChatExchange{exchange},
+		Title:     sentence,
+		Type:      config.HistoryTypeCommand,
+	}
 	err = config.Save(c)
 	if err != nil {
 		return fmt.Errorf("error saving chat history: %v", err)
@@ -87,12 +92,4 @@ func Run() error {
 		cmd.Run()
 	}
 	return nil
-}
-
-func simulateTyping(text string, delay time.Duration) {
-	for _, char := range text {
-		fmt.Printf("%c", char)
-		time.Sleep(delay)
-	}
-	fmt.Println()
 }
