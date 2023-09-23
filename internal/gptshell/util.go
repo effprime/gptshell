@@ -20,7 +20,7 @@ func confirmAndRun(command string) error {
 
 		choice := -1
 		prompt := &survey.Select{
-			Message: "GPTShell",
+			Message: "Command options",
 			Options: []string{
 				"Execute command",
 				"Edit command",
