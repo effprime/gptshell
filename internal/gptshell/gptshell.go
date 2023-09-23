@@ -3,10 +3,6 @@ package gptshell
 import (
 	"errors"
 	"fmt"
-	"os"
-	"os/exec"
-	"strings"
-	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/effprime/gptshell/internal/config"
@@ -75,21 +71,5 @@ func Run() error {
 		return fmt.Errorf("error saving chat history: %v", err)
 	}
 
-	content := resp.Choices[0].Message.Content
-	simulateTyping(content, 75*time.Millisecond)
-
-	execute := ""
-	survey.AskOne(&survey.Input{
-		Message: "Execute raw response? (yes/no):",
-	}, &execute)
-	execute = strings.ToLower(execute)
-
-	if execute == "yes" {
-		cmd := exec.Command("bash", "-c", content)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		cmd.Stdin = os.Stdin
-		cmd.Run()
-	}
-	return nil
+	return confirmAndRun(resp.Choices[0].Message.Content)
 }

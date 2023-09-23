@@ -19,7 +19,6 @@ func main() {
 		Message: "GPTShell",
 		Options: []string{
 			"Run a command",
-			"Have a conversation",
 			"View command history",
 		},
 	}
@@ -30,8 +29,6 @@ func main() {
 	case 0:
 		err = gptshell.Run()
 	case 1:
-		err = gptshell.Convo()
-	case 2:
 		err = gptshell.History()
 	default:
 		err = errors.New("invalid selection")

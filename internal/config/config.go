@@ -27,7 +27,6 @@ type GPTShellConfig struct {
 
 const (
 	HistoryTypeCommand = "command"
-	HistoryTypeConvo   = "convo"
 )
 
 type History struct {
